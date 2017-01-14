@@ -30,22 +30,26 @@ class TagihanAngsuran
 		return $models->toArray();
 	}
 
-	public static function bayarTagihanPerBulan(string $tagihan_id, string $bulan)
+	public static function buatJadwalPenagihan(string $tagihan_id, string $bulan)
 	{
-		$angsuran 		= TagihanAngsuran::id($tagihan_id)->find();
-		
-		if(TagihanAngsuran::angsuran(string $tagihan))
+		$angsuran 		= TagihanAngsuran::id($tagihan_id)->bulan(string $bulan)->first();
+
+		if($this->apakahsudahlunas($angsuran))
 		{
 			//error
 		}
 
-		if(!TagihanAngsuran::bayarAngsuranBulan(string $bulan))
+		if(JadwalPenagihan::buatkanJadwalUntukAngsuran($angsuran))
 		{
 			//error
 		}
 
-		$models 		= TagihanAngsuran::angsuranBulan()->with(['detail_tagihan_angsuran'])->get();
+		return $angsuran;
+	}
 
-		return $models->toArray();
+	private function apakahsudahlunas(TagihanAngsuran $angsuran)
+	{
+		//here lies policies of lunas!
+		return false;
 	}
 }
