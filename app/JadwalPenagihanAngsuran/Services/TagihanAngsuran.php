@@ -23,9 +23,16 @@ class TagihanAngsuran
 		return $models->toArray();
 	}
 
+	public static function cariBerdasarkanTanggalJatuhTempo(DateTime $tanggal)
+	{
+		$models 		= TagihanAngsuran::JatuhTempo($tanggal)->with(['detail_tagihan_angsuran'])->get();
+		
+		return $models->toArray();
+	}
+
 	public static function hitungTotalTagihan()
 	{
-		$models 		= TagihanAngsuran::tampilkanDenganTotalTagihan()->with(['detail_tagihan_angsuran'])->get();
+		$models 		= TagihanAngsuran::with(['detail_tagihan_angsuran'])->tampilkanDenganTotalTagihan();
 
 		return $models->toArray();
 	}
@@ -34,22 +41,25 @@ class TagihanAngsuran
 	{
 		$angsuran 		= TagihanAngsuran::id($tagihan_id)->bulan(string $bulan)->first();
 
-		if($this->apakahsudahlunas($angsuran))
+		if($this->apakahSudahLunas($angsuran))
 		{
-			//error
+			return false;
 		}
 
-		if(JadwalPenagihan::buatkanJadwalUntukAngsuran($angsuran))
-		{
-			//error
-		}
+		$jadwal 	= JadwalPenagihan::buatkanJadwalUntukAngsuran($angsuran)
 
-		return $angsuran;
+		return true;
 	}
 
-	private function apakahsudahlunas(TagihanAngsuran $angsuran)
+	private function apakahSudahLunas(TagihanAngsuran $angsuran)
 	{
-		//here lies policies of lunas!
+		$status 			= $angsuran->tampilkanStatus('now');
+
+		if(str_is($status, 'lunas'))
+		{
+			return true;
+		}
+
 		return false;
 	}
 }

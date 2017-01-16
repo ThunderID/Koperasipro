@@ -3,6 +3,7 @@
 namespace App\JadwalPenagihanAngsuran\Models;
 
 use App\Models\BaseModel;
+use App\JadwalPenagihanAngsuran\ModelObservers\ReadOnlyAggregateEntityObserver;
 
 /**
  * Used for Anggota Models

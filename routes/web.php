@@ -13,8 +13,15 @@
 
 Route::get('/', function () 
 {
+// 	if (DB::connection()->getDatabaseName())
+// {
+//    return 'Connected to the DB: ' . DB::connection()->getDatabaseName();
+// }
+
+
+	return \App\JadwalPenagihanAngsuran\Models\Anggota::all();
 	$data 	= 	[
-					'name'			=> 'Chelsy Mooy',
+					'nama'			=> 'Chelsy Mooy',
 					'gender'		=> 'female',
 					'date_of_birth'	=> '1993-08-11',
 					'address'		=> 'Puri Cempaka Putih II AS 86',
@@ -29,10 +36,13 @@ Route::get('/', function ()
 					'sim'			=> '930815250365',
 				];
 
-	$member = \App\Registration\Models\Member::register($data);
+	$member = new \App\JadwalPenagihanAngsuran\Models\Anggota;
 
-	$memberRepository 	= new \App\Registration\Repositories\MysqlMemberRepository;
-	$memberRepository->save($member);
+	$member->fill($data);
+	$member->save();
+	dd($member->getError());
+	// $memberRepository 	= new \App\Registration\Repositories\MysqlMemberRepository;
+	// $memberRepository->save($member);
 
 exit;
     return view('welcome');

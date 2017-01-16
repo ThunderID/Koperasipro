@@ -53,6 +53,7 @@ class ReadOnlyAggregateEntityObserver
 
 	public function is_allowed($model, $class)
 	{
+		return true;
 		$classes  = debug_backtrace();
 
 		foreach ($classes as $key => $value) 
