@@ -5,6 +5,8 @@ namespace App\JadwalPenagihanAngsuran\Models;
 use App\Models\BaseModel;
 use App\JadwalPenagihanAngsuran\ModelObservers\CRUDAggregateRootEntityObserver;
 
+use Carbon\Carbon;
+
 /**
  * Used for JadwalPenagihan Models
  * 
@@ -24,7 +26,7 @@ class JadwalPenagihan extends BaseModel
 	 *
 	 * @var array
 	 */
-	protected $dates				=	['created_at', 'updated_at', 'deleted_at'];
+	protected $dates				=	['created_at', 'updated_at', 'deleted_at', 'tanggal'];
 
 	/**
 	 * The attributes that are mass assignable.
@@ -103,22 +105,21 @@ class JadwalPenagihan extends BaseModel
 
 	public function scopeTanggal($query, Carbon $variable)
 	{
-		return $query->where('tanggal', $variable->format('Y-m-d H:i:s'));
+		return $query->whereBetween('tanggal', [$variable->startOfDay()->format('Y-m-d H:i:s'), $variable->endOfDay()->format('Y-m-d H:i:s')]);
 	}
 
 	public function scopeTampilkanStatus($query, $variable)
 	{
 		return $query
 				->selectraw('jadwal_penagihan.*')
-				->selectraw('status.status as status')
-				->join('status', function ($join) use($variable) 
+				// ->selectraw('IFNULL(status, NULL) as status')
+				->leftjoin('status', function ($join)
 				 {
-					$join->on('jadwal_penagihan.id', '=', 'status.jadwal_penagihan_id')
-						->wherenull('status.deleted_at')
-										;
+		            $join->on ( 'status.jadwal_penagihan_id', '=', 'jadwal_penagihan.id' )
+						->wherenull('status.deleted_at');
 				})
-				->orderby('status.tanggal')
-				->groupby('jadwal_penagihan.id')
+				// ->orderby('status.tanggal')
+				// ->groupby('jadwal_penagihan_id')
 				->first();
 		;
 	}

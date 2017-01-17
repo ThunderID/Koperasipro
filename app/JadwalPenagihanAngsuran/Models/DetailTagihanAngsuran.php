@@ -45,7 +45,7 @@ class DetailTagihanAngsuran extends BaseModel
 	protected $rules				=	[
 											'tagihan_angsuran_id'	=> 'required|max:255',
 											'keterangan'			=> 'required',
-											'nominal'				=> 'required|number',
+											'nominal'				=> 'required|numeric',
 										];
 
 	/* ---------------------------------------------------------------------------- RELATIONSHIP ----------------------------------------------------------------------------*/

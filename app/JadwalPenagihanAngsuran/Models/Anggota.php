@@ -5,7 +5,7 @@ namespace App\JadwalPenagihanAngsuran\Models;
 use App\Models\BaseModel;
 use App\JadwalPenagihanAngsuran\ModelObservers\ReadOnlyAggregateEntityObserver;
 
-use App\JadwalPenagihanAngsuran\Traits\FieldNameTrait;
+use App\JadwalPenagihanAngsuran\Models\Traits\FieldNameTrait;
 
 /**
  * Used for Anggota Models

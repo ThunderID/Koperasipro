@@ -5,6 +5,8 @@ namespace App\JadwalPenagihanAngsuran\Services;
 use App\JadwalPenagihanAngsuran\Models\TagihanAngsuran as TagihanAngsuranModel;
 use App\JadwalPenagihanAngsuran\Models\JadwalPenagihan as JadwalPenagihanModel;
 
+use Carbon\Carbon;
+
 /**
  * Using TagihanAngsuran Models
  * 
@@ -26,9 +28,9 @@ class TagihanAngsuran extends BaseService
 		return $models->toArray();
 	}
 
-	public static function cariBerdasarkanTanggalJatuhTempo(DateTime $tanggal)
+	public static function cariBerdasarkanTanggalJatuhTempo(Carbon $tanggal)
 	{
-		$models		= TagihanAngsuranModel::JatuhTempo($tanggal)->with(['details', 'anggota'])->get();
+		$models		= TagihanAngsuranModel::TanggalJatuhTempo($tanggal)->with(['details', 'anggota'])->get();
 		
 		return $models->toArray();
 	}
@@ -40,7 +42,7 @@ class TagihanAngsuran extends BaseService
 		return $models->toArray();
 	}
 
-	public static function buatkanJadwal(string $tagihan_id)
+	public function buatkanJadwal(string $tagihan_id)
 	{
 		$angsuran	= TagihanAngsuranModel::id($tagihan_id)->first();
 
@@ -51,17 +53,24 @@ class TagihanAngsuran extends BaseService
 			return false;
 		}
 
-		$jadwal		= JadwalPenagihan::buatkanJadwalTagihanAngsuran($angsuran);
+		$jadwal		= new JadwalPenagihan;
+		
+		$jadwal->buatkanJadwalTagihanAngsuran($angsuran);
 
 		return true;
 	}
 
 	private function apakahSudahLunas(TagihanAngsuranModel $angsuran)
 	{
-		$jadwal		= JadwalPenagihanModel::IDTagihanAngsuran($angsuran->id)->tampilkanStatus(Carbon::now());
-
-		if(str_is($jadwal->status, 'sudah_ditagih'))
+		if(JadwalPenagihanModel::IDTagihanAngsuran($angsuran->id)->count())
 		{
+			$jadwal		= JadwalPenagihanModel::IDTagihanAngsuran($angsuran->id)->tampilkanStatus(Carbon::now());
+
+			if(!str_is($jadwal->status, 'sudah_ditagih'))
+			{
+				return false;
+			}
+
 			return true;
 		}
 

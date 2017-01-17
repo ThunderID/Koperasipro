@@ -3,6 +3,9 @@
 namespace App\JadwalPenagihanAngsuran\Services;
 
 use App\JadwalPenagihanAngsuran\Models\JadwalPenagihan as JadwalPenagihanModel;
+use App\JadwalPenagihanAngsuran\Models\TagihanAngsuran as TagihanAngsuranModel;
+use App\JadwalPenagihanAngsuran\Models\Status as StatusModel;
+use App\JadwalPenagihanAngsuran\Models\Petugas;
 
 use Carbon\Carbon;
 
@@ -13,7 +16,7 @@ use Carbon\Carbon;
  */
 class JadwalPenagihan extends BaseService
 {
-	public static function eksekusiPenagihan(string $id)
+	public function eksekusiPenagihan(string $id)
 	{
 		$models				= JadwalPenagihanModel::id($id)->first();
 
@@ -25,7 +28,7 @@ class JadwalPenagihan extends BaseService
 		return true;
 	}
 
-	public static function batalkanPenagihan(string $id)
+	public function batalkanPenagihan(string $id)
 	{
 		$models				= JadwalPenagihanModel::id($id)->first();
 
@@ -37,14 +40,14 @@ class JadwalPenagihan extends BaseService
 		return true;
 	}
 
-	public static function cariBerdasarkanTanggalTagihan(DateTime $tanggal)
+	public static function cariBerdasarkanTanggalTagihan(Carbon $tanggal)
 	{
 		$models				= JadwalPenagihanModel::tanggal($tanggal)->get();
 		
 		return $models->toArray();
 	}
 
-	public static function buatkanJadwalTagihanAngsuran(TagihanAngsuran $angsuran)
+	public function buatkanJadwalTagihanAngsuran(TagihanAngsuranModel $angsuran)
 	{
 		$tanggal_penagihan 	= $this->generateTanggalPenagihan($angsuran->tanggal_jatuh_tempo);
 
@@ -53,7 +56,7 @@ class JadwalPenagihan extends BaseService
 		$jadwal 			= new JadwalPenagihanModel;
 
 		$jadwal->fill([
-						'tagihan_id'			=> $angsuran->id,
+						'tagihan_angsuran_id'	=> $angsuran->id,
 						'petugas_id'			=> $petugas->id,
 						'tanggal'				=> $tanggal_penagihan->format('Y-m-d H:i:s'),
 						'keterangan'			=> 'Penagihan atas nama ',$angsuran->anggota->nama.' sebesar '.$angsuran->TotalTagihan(),
@@ -66,7 +69,7 @@ class JadwalPenagihan extends BaseService
 			return false;
 		}
 
-		if(!$this->changeStatus($models, 'belum_ditagih'))
+		if(!$this->changeStatus(JadwalPenagihanModel::find($jadwal->id), 'belum_ditagih'))
 		{
 			return false;
 		}
@@ -90,15 +93,27 @@ class JadwalPenagihan extends BaseService
 	{
 		$petugas_sibuk 		= JadwalPenagihanModel::tanggal($tanggal_penagihan)->get(['petugas_id']);
 
-		$petugas_id 		= Petugas::notid($petugas_ids)->first();
+		if(count($petugas_sibuk))
+		{
+			$petugas_id 	= Petugas::notid($petugas_sibuk)->first();
+		}
+		else
+		{
+			$petugas_id 	= Petugas::first();
+		}
 
 		return $petugas_id;
 	}
 
-	private function changeStatus(JadwalPenagihanModel $jadwalpenagihan, string $status)
+	private function changeStatus(JadwalPenagihanModel $jadwalpenagihan, string $proposed_status)
 	{
 		$status 			= new StatusModel;
-		$status->fill(['jadwal_penagihan_id' => $jadwalpenagihan->id, 'petugas_id' => $jadwalpenagihan->petugas_id, 'tanggal' => Carbon::now()->format('Y-m-d H:i:s'), 'status' => $status]);
+		$status->fill([
+			'jadwal_penagihan_id' 	=> $jadwalpenagihan->id, 
+			'petugas_id' 			=> $jadwalpenagihan->petugas_id, 
+			'tanggal' 				=> Carbon::now()->format('Y-m-d H:i:s'), 
+			'status' 				=> $proposed_status,
+		]);
 
 		if(!$status->save())
 		{

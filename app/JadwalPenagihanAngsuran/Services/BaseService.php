@@ -2,6 +2,8 @@
 
 namespace App\JadwalPenagihanAngsuran\Services;
 
+use Illuminate\Support\MessageBag;
+
 /**
  * Abstract class for services
  * 
@@ -29,8 +31,6 @@ abstract class BaseService
 	 */
 	function __construct() 
 	{
-		parent::__construct();
-
 		$this->errors = new MessageBag;
 	}
 }

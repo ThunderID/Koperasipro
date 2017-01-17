@@ -27,7 +27,7 @@ class TagihanAngsuran extends BaseModel
 	 *
 	 * @var array
 	 */
-	protected $dates				=	['created_at', 'updated_at', 'deleted_at'];
+	protected $dates				=	['created_at', 'updated_at', 'deleted_at', 'tanggal_jatuh_tempo'];
 
 	/**
 	 * The attributes that are mass assignable.
@@ -112,12 +112,7 @@ class TagihanAngsuran extends BaseModel
 
 	public function scopeTanggalJatuhTempo($query, Carbon $variable)
 	{
-		return $query->where('tanggal_jatuh_tempo', $variable->format('Y-m-d H:i:s'));
-	}
-
-	public function scopeTanggalJatuhTempo($query, Carbon $variable)
-	{
-		return $query->where('tanggal_jatuh_tempo', $variable->format('Y-m-d H:i:s'));
+		return $query->whereBetween('tanggal_jatuh_tempo', [$variable->startOfDay()->format('Y-m-d H:i:s'), $variable->endOfDay()->format('Y-m-d H:i:s')]);
 	}
 
 	public function scopeTampilkanDenganTotalTagihan($query)

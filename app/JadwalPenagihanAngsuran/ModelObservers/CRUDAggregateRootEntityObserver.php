@@ -53,11 +53,13 @@ class CRUDAggregateRootEntityObserver
 
 	public function is_allowed($model, $class)
 	{
+		return true;
+
 		$classes  = debug_backtrace();
 
 		foreach ($classes as $key => $value) 
 		{
-		if(isset($value['class']) && str_is($class, $value['class']))
+			if(isset($value['class']) && str_is($class, $value['class']))
 			{
 				return true;
 			}
