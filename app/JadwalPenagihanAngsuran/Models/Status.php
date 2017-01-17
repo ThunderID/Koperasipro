@@ -3,6 +3,7 @@
 namespace App\JadwalPenagihanAngsuran\Models;
 
 use App\Models\BaseModel;
+use App\JadwalPenagihanAngsuran\ModelObservers\CRUDAggregateEntityObserver;
 
 /**
  * Used for Status Models
@@ -46,7 +47,7 @@ class Status extends BaseModel
 											'jadwal_penagihan_id'	=> 'required|max:255',
 											'petugas_id'			=> 'required|max:255',
 											'tanggal'				=> 'required|date_format:"Y-m-d H:i:s"',
-											'status'				=> 'required|in:sudah_ditagih,belum_ditagih',
+											'status'				=> 'required|in:sudah_ditagih,belum_ditagih,tidak_ditagih',
 										];
 
 	/* ---------------------------------------------------------------------------- RELATIONSHIP ----------------------------------------------------------------------------*/

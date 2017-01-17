@@ -2,60 +2,65 @@
 
 namespace App\JadwalPenagihanAngsuran\Services;
 
+use App\JadwalPenagihanAngsuran\Models\TagihanAngsuran as TagihanAngsuranModel;
+use App\JadwalPenagihanAngsuran\Models\JadwalPenagihan as JadwalPenagihanModel;
+
 /**
  * Using TagihanAngsuran Models
  * 
  * @author cmooy
  */
-class TagihanAngsuran
+class TagihanAngsuran extends BaseService 
 {
-	public static function cariBerdasarkanNamaAnggota(string $nama)
+	public static function cariBerdasarkanIDAnggota(string $id)
 	{
-		$models 		= TagihanAngsuran::namaAnggota($nama)->with(['detail_tagihan_angsuran'])->get();
-
+		$models		= TagihanAngsuranModel::IDAnggota($id)->with(['details'])->get();
+		
 		return $models->toArray();
 	}
 
-	public static function cariBerdasarkanIDAnggota(string $id)
+	public static function cariBerdasarkanNamaAnggota(string $nama)
 	{
-		$models 		= TagihanAngsuran::IDAnggota($id)->with(['detail_tagihan_angsuran'])->get();
-		
+		$models		= TagihanAngsuranModel::namaAnggota($nama)->with(['details'])->get();
+
 		return $models->toArray();
 	}
 
 	public static function cariBerdasarkanTanggalJatuhTempo(DateTime $tanggal)
 	{
-		$models 		= TagihanAngsuran::JatuhTempo($tanggal)->with(['detail_tagihan_angsuran'])->get();
+		$models		= TagihanAngsuranModel::JatuhTempo($tanggal)->with(['details', 'anggota'])->get();
 		
 		return $models->toArray();
 	}
 
 	public static function hitungTotalTagihan()
 	{
-		$models 		= TagihanAngsuran::with(['detail_tagihan_angsuran'])->tampilkanDenganTotalTagihan();
+		$models		= TagihanAngsuranModel::tampilkanDenganTotalTagihan();
 
 		return $models->toArray();
 	}
 
-	public static function buatJadwalPenagihan(string $tagihan_id, string $bulan)
+	public static function buatkanJadwal(string $tagihan_id)
 	{
-		$angsuran 		= TagihanAngsuran::id($tagihan_id)->bulan(string $bulan)->first();
+		$angsuran	= TagihanAngsuranModel::id($tagihan_id)->first();
 
 		if($this->apakahSudahLunas($angsuran))
 		{
+			$this->errors->add('Lunas', 'Tagihan Sudah Lunas');
+
 			return false;
 		}
 
-		$jadwal 	= JadwalPenagihan::buatkanJadwalUntukAngsuran($angsuran)
+		$jadwal		= JadwalPenagihan::buatkanJadwalTagihanAngsuran($angsuran);
 
 		return true;
 	}
 
-	private function apakahSudahLunas(TagihanAngsuran $angsuran)
+	private function apakahSudahLunas(TagihanAngsuranModel $angsuran)
 	{
-		$status 			= $angsuran->tampilkanStatus('now');
+		$jadwal		= JadwalPenagihanModel::IDTagihanAngsuran($angsuran->id)->tampilkanStatus(Carbon::now());
 
-		if(str_is($status, 'lunas'))
+		if(str_is($jadwal->status, 'sudah_ditagih'))
 		{
 			return true;
 		}

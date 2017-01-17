@@ -3,6 +3,7 @@
 namespace App\JadwalPenagihanAngsuran\Models;
 
 use App\Models\BaseModel;
+use App\JadwalPenagihanAngsuran\ModelObservers\CRUDAggregateRootEntityObserver;
 
 /**
  * Used for JadwalPenagihan Models
@@ -31,7 +32,7 @@ class JadwalPenagihan extends BaseModel
 	 * @var array
 	 */
 	protected $fillable				=	[
-											'tagihan_id'			,
+											'tagihan_angsuran_id'	,
 											'petugas_id'			,
 											'tanggal'				,
 											'keterangan'			,
@@ -43,14 +44,31 @@ class JadwalPenagihan extends BaseModel
 	 * @var array
 	 */
 	protected $rules				=	[
-											'tagihan_id'			=> 'required|max:255',
+											'tagihan_angsuran_id'	=> 'required|max:255',
 											'petugas_id'			=> 'required|max:255',
 											'tanggal'				=> 'required|date_format:"Y-m-d H:i:s"',
 											'keterangan'			=> 'required',
 										];
 
 	/* ---------------------------------------------------------------------------- RELATIONSHIP ----------------------------------------------------------------------------*/
-	
+	/**
+	 * call belongsto relationship
+	 *
+	 **/
+	public function petugas()
+	{
+		return $this->belongsTo('\App\JadwalPenagihanAngsuran\Models\Petugas');
+	}
+
+	/**
+	 * call hasmany relationship
+	 *
+	 **/
+	public function statuses()
+	{
+		return $this->hasMany('\App\JadwalPenagihanAngsuran\Models\Status', 'jadwal_penagihan_id');
+	}
+
 	/* ---------------------------------------------------------------------------- QUERY BUILDER ----------------------------------------------------------------------------*/
 	
 	/* ---------------------------------------------------------------------------- MUTATOR ----------------------------------------------------------------------------*/
@@ -72,4 +90,36 @@ class JadwalPenagihan extends BaseModel
 	}
 
 	/* ---------------------------------------------------------------------------- SCOPES ----------------------------------------------------------------------------*/
+
+	public function scopeIDTagihanAngsuran($query, $variable)
+	{
+		if(is_array($variable))
+		{
+			return $query->whereIn('tagihan_angsuran_id', $variable);
+		}
+
+		return $query->where('tagihan_angsuran_id', $variable);
+	}
+
+	public function scopeTanggal($query, Carbon $variable)
+	{
+		return $query->where('tanggal', $variable->format('Y-m-d H:i:s'));
+	}
+
+	public function scopeTampilkanStatus($query, $variable)
+	{
+		return $query
+				->selectraw('jadwal_penagihan.*')
+				->selectraw('status.status as status')
+				->join('status', function ($join) use($variable) 
+				 {
+					$join->on('jadwal_penagihan.id', '=', 'status.jadwal_penagihan_id')
+						->wherenull('status.deleted_at')
+										;
+				})
+				->orderby('status.tanggal')
+				->groupby('jadwal_penagihan.id')
+				->first();
+		;
+	}
 }

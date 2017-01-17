@@ -3,6 +3,10 @@
 namespace App\JadwalPenagihanAngsuran\Models;
 
 use App\Models\BaseModel;
+use App\JadwalPenagihanAngsuran\ModelObservers\CRUDAggregateRootEntityObserver;
+
+use Carbon\Carbon;
+
 
 /**
  * Used for TagihanAngsuran Models
@@ -42,11 +46,28 @@ class TagihanAngsuran extends BaseModel
 	 */
 	protected $rules				=	[
 											'anggota_id'			=> 'required|max:255',
-											'tanggal_tagihan'		=> 'required|date_format:"Y-m-d H:i:s"',
+											'tanggal_jatuh_tempo'	=> 'required|date_format:"Y-m-d H:i:s"',
 										];
 
 	/* ---------------------------------------------------------------------------- RELATIONSHIP ----------------------------------------------------------------------------*/
-	
+	/**
+	 * call belongsto relationship
+	 *
+	 **/
+	public function anggota()
+	{
+		return $this->belongsTo('\App\JadwalPenagihanAngsuran\Models\Anggota');
+	}
+
+	/**
+	 * call hasmany relationship
+	 *
+	 **/
+	public function details()
+	{
+		return $this->hasMany('\App\JadwalPenagihanAngsuran\Models\DetailTagihanAngsuran', 'tagihan_angsuran_id');
+	}
+
 	/* ---------------------------------------------------------------------------- QUERY BUILDER ----------------------------------------------------------------------------*/
 	
 	/* ---------------------------------------------------------------------------- MUTATOR ----------------------------------------------------------------------------*/
@@ -67,5 +88,55 @@ class TagihanAngsuran extends BaseModel
         TagihanAngsuran::observe(new CRUDAggregateRootEntityObserver());
 	}
 
+	public function TotalTagihan()
+	{
+		return DetailTagihanAngsuran::IDTagihanAngsuran($this->id)->sum('nominal');
+	}
+
 	/* ---------------------------------------------------------------------------- SCOPES ----------------------------------------------------------------------------*/
+
+	public function scopeIDAnggota($query, $variable)
+	{
+		if(is_array($variable))
+		{
+			return $query->whereIn('anggota_id', $variable);
+		}
+
+		return $query->where('anggota_id', $variable);
+	}
+
+	public function scopeNamaAnggota($query, $variable)
+	{
+		return $query->whereHas('anggota', function($q)use($variable){return $q->name($variable);});
+	}
+
+	public function scopeTanggalJatuhTempo($query, Carbon $variable)
+	{
+		return $query->where('tanggal_jatuh_tempo', $variable->format('Y-m-d H:i:s'));
+	}
+
+	public function scopeTanggalJatuhTempo($query, Carbon $variable)
+	{
+		return $query->where('tanggal_jatuh_tempo', $variable->format('Y-m-d H:i:s'));
+	}
+
+	public function scopeTampilkanDenganTotalTagihan($query)
+	{
+		return $query
+				->selectraw('tagihan_angsuran.*')
+				->selectraw('IFNULL(SUM(nominal)) as total_tagihan')
+				->join('detail_tagihan_angsuran', function ($join) use($variable) 
+				 {
+					$join->on('tagihan_angsuran.id', '=', 'detail_tagihan_angsuran.tagihan_angsuran_id')
+						->wherenull('detail_tagihan_angsuran.deleted_at')
+										;
+				})
+				->get();
+		;
+	}
+
+	public function scopeBulan($query, $variable)
+	{
+		return $query->whereHas('detail', function($q)use($variable){return $q->bulan($variable);});
+	}
 }

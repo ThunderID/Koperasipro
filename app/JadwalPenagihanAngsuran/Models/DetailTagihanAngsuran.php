@@ -3,6 +3,7 @@
 namespace App\JadwalPenagihanAngsuran\Models;
 
 use App\Models\BaseModel;
+use App\JadwalPenagihanAngsuran\ModelObservers\CRUDAggregateVOObserver;
 
 /**
  * Used for DetailTagihanAngsuran Models
@@ -70,4 +71,14 @@ class DetailTagihanAngsuran extends BaseModel
 	}
 
 	/* ---------------------------------------------------------------------------- SCOPES ----------------------------------------------------------------------------*/
+	
+	public function scopeIDTagihanAngsuran($query, $variable)
+	{
+		if(is_array($variable))
+		{
+			return $query->whereIn('tagihan_angsuran_id', $variable);
+		}
+
+		return $query->where('tagihan_angsuran_id', $variable);
+	}
 }
